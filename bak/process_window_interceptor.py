@@ -67,18 +67,6 @@ r.change_attributes(event_mask=X.SubstructureNotifyMask | X.StructureNotifyMask)
 wnd = None
 
 
-app_wnd = r.create_window(
-            50, 50, 300, 200, 2,
-            d.screen().root_depth,
-            X.InputOutput,
-            X.CopyFromParent,
-
-            # special attribute values
-            background_pixel = d.screen().white_pixel,
-            event_mask = (X.ExposureMask | X.KeyPressMask),
-            )
-
-app_wnd.map()
 
 p1 = Popen(["terminator"])
 find_by_pid(p1.pid)
