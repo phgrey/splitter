@@ -7,6 +7,8 @@ from Xlib.protocol.event import CreateNotify
 from subprocess import Popen
 from select import select
 from pprint import pprint
+from lib.window import Window
+
 
 
 def get_property(wnd, name):
@@ -88,6 +90,9 @@ while not wnd:
             handle_event(event)
             i -= 1
 
+
+
+Window().loop()
 
 p1.terminate()
 

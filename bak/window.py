@@ -1,8 +1,9 @@
-from Xlib import X, display
+from lib.protocol import X, display, request
+from select import select
 
 class Window:
     def __init__(self, displ=None, msg='Hello world'):
-        self.display = displ or display.Display()
+        self.display = displ or display
         self.msg = msg
 
         self.screen = self.display.screen()
@@ -21,16 +22,22 @@ class Window:
 
     def loop(self):
         while True:
-            pass
             e = self.display.next_event()
-            #
-            # if e.type == X.Expose:
-            #     self.window.fill_rectangle(self.gc, 20, 20, 10, 10)
-            #     self.window.draw_text(self.gc, 10, 50, self.msg)
-            # elif e.type == X.KeyPress:
             if e.type == X.KeyPress:
                 raise SystemExit
 
+
+    def loop2(self):
+        readable = [self.display]
+        while True:
+            if readable and self.display in readable:
+                e = self.display.next_event()
+                if e.type == X.KeyPress:
+                    raise SystemExit
+                print('readable')
+            else:
+                print('nonreadable')
+            readable, w, e = select([self.display], [], [], 1)
 
 if __name__ == "__main__":
     Window().loop()
