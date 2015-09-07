@@ -25,6 +25,9 @@ class Applet:
 
     def ready(self):
         self.is_ready = True
-        self.process.terminate()
+
+    @classmethod
+    def commands(cls, commands):
+        return {cls(command=x) for x in commands}
 
 

@@ -1,99 +1,48 @@
 #!/usr/bin/python3
-from ewmh import EWMH
-from Xlib import Xatom, X, display
-from Xlib.protocol import request
-from Xlib.xobject.drawable import Window
-from Xlib.protocol.event import CreateNotify
-from subprocess import Popen
+from lib.protocol import display, root, X, get_wnds, get_pid
 from select import select
-from pprint import pprint
-from window import Window
+from lib.applet import Applet
+from lib.split import Split
 
 
+def find_by_pids(pids, callback):
+    root.change_attributes(event_mask=X.SubstructureNotifyMask | X.StructureNotifyMask)
+    known = set()
 
-def get_property(wnd, name):
-    type = request.InternAtom(display=wnd.display, name=name, only_if_exists=0).atom
-    res = wnd.get_property(type, X.AnyPropertyType, 0, 100)
-    if res:
-        return res.value
-    else:
-        return []
+    def check_all(wnds = None):
+        wnds = wnds or get_wnds()
+        known.update({check(x) for x in wnds})
 
+    def check(w):
+        if w.id in known: return w.id
+        pid = get_pid(w)
+        if pid in pids:
+            callback(pid, w)
+            pids.remove(pid)
+        return w.id
 
-def get_naming(atom):
-    try:
-        return request.GetAtomName(display=d.display, atom=atom).name
-    except:
-        print(atom)
-        return 'UNKNOWN'
+    check_all()
 
+    while len(pids) > 0:
+        readable, w, e = select([display], [], [], 1)
+        if not readable:
+            print('non-readable')
+            check_all()
+        elif display in readable:
+            i = display.pending_events()
+            print('readable')
+            while i > 0:
+                event = display.next_event()
+                if event.type == X.CreateNotify: check_all({event.window})
+                i -= 1
 
-def get_pid(wnd):
-    ret = get_property(wnd, '_NET_WM_PID')
-    return ret[0] if len(ret) > 0 else 0
-
-
-def check_wnd(window: Window):
-    # print('checking wnd ' + get_property(window, '_NET_WM_NAME') + ' ')
-    # types = get_property(window, '_NET_WM_WINDOW_TYPE')
-    # print(types)
-    # print(list(map(get_naming, types)))
-    # print(window)
-    return get_pid(window) == p1.pid
-
-
-def got_wnd(window):
-    global wnd
-    print('window '+ window.get_wm_name())
-    wnd = window
-
-
-def handle_event(event):
-    print('checking event ' + event.__class__.__name__)
-    if isinstance(event, CreateNotify):
-        check_wnd(event.window) and got_wnd(event.window)
-
-
-def find_by_pid(pid):
-    ewmh = EWMH()
-    wnds = list(ewmh.getClientList())
-    # pprint(wnds)
-    matched = list(filter(check_wnd, wnds))
-    if matched:
-        got_wnd(matched[0])
-
-
-d = display.Display()
-r = d.screen().root
-r.change_attributes(event_mask=X.SubstructureNotifyMask | X.StructureNotifyMask)
-wnd = None
-
-
-
-p1 = Popen(["terminator"])
-find_by_pid(p1.pid)
-while not wnd:
-    # Wait for display to send something, or a timeout of one second
-    readable, w, e = select([d], [], [], 1)
-
-    # if no files are ready to be read, it's an timeout
-    if not readable:
-        # raise TimeoutError('Can not launch subprocess')
-        print('non-readable')
-        find_by_pid(p1.pid)
-    # if display is readable, handle as many events as have been recieved
-    elif d in readable:
-        i = d.pending_events()
-        print('readable')
-        while i > 0:
-            event = d.next_event()
-            handle_event(event)
-            i -= 1
-
-
-
-Window().loop()
-
-p1.terminate()
-
-while 1: pass
+applets = Applet.commands({'terminator', 'thunar'})
+apps = {x.process.pid: x for x in applets}
+try:
+    find_by_pids(set(apps.keys()), lambda pid, w: apps[pid].set_window(w))
+    print('all found')
+    Split().loop()
+except KeyboardInterrupt: pass
+finally:
+    for app in applets:
+        app.process.terminate()

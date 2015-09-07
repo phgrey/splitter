@@ -1,7 +1,7 @@
 from lib.protocol import X, display, request
 from select import select
 
-class Window:
+class Split:
     def __init__(self, displ=None, msg='Hello world'):
         self.display = displ or display
         self.msg = msg
@@ -17,7 +17,7 @@ class Window:
             foreground = self.screen.black_pixel,
             background = self.screen.white_pixel,
             )
-        request.StoreName(self.display, self.window.id, 'Hi! it\'s me')
+        # request.StoreName(self.display, self.window.id, 'Hi! it\'s me')
         self.window.map()
 
     def loop(self):
@@ -40,4 +40,4 @@ class Window:
             readable, w, e = select([self.display], [], [], 1)
 
 if __name__ == "__main__":
-    Window().loop()
+    Split().loop()

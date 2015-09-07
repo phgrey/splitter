@@ -29,6 +29,6 @@ def get_pid(wnd):
 
 
 def get_wnds():
-    wnd_ids = get_property(display.screen().root, '_NET_CLIENT_LIST')
+    wnd_ids = get_property(root, '_NET_CLIENT_LIST')
     # print(wnd_ids)
-    return [display.create_resource_object('window', wid) for wid in wnd_ids]
+    return {display.create_resource_object('window', wid) for wid in wnd_ids}
