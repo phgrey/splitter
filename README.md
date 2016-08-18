@@ -1,3 +1,20 @@
+SUMMARY:
+basicly this is a probe of make not tiling wm, but window with tiled parts management
+
+#first try
+splitter3 - xlib, python, gtk, xprop
+
+gem wmctrl - тоже возможности для command-line dpfbvjltqcndbz
+
+#next way
+devilspy (devilspy2) + gdevilspy - a way to operate windows
+
+gem shoes - a way to create own app with gui
+
+#chrome way
+u should use terminal console and make it multiterminal perhaps. via extensions coding
+
+
 To read:
 http://www.pygtk.org/pygtk2tutorial/index.html                          pugtk2+
 http://www.sbin.org/doc/Xlib/chapt_08.html                              xlib
